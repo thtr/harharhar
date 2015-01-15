@@ -1,15 +1,37 @@
 <!doctype html>
-<html><head><title>sample</title>
+<html><head><title>sample har file loading</title>
+<style>
+html, body{background:white;color:black;font:1rem/1.5 sans-serif;}
+textarea{min-width:40rem;height:10rem;overflow:auto;border:1px solid #aaa;padding:0.3rem;display:block;}
+</style>
 </head><body>
-<h3>har</h3>
-
+<h3>har file mocking example and file generator</h3>
+<form>
+<input value="simple.har">
+<input type=submit value=load> TODO make this work
+<textarea class=harsloaded></textarea>
+</form>
+<form>
+generated har, customize for desired mock:
+<br>TODO create a more elaborate form for easy mocking.
+<textarea class=harjson></textarea>
+</form>
 <script src="./harharhar.js"></script>
 <script>
+// load the mocked data
 Mock('simple.har');
+// then load something that's mocked in the har file
 var a = new XMLHttpRequest();
 a.open('get','/dev.js',true);
-a.onreadystatechange = function(e){
+a.onreadystatechange = harLoad;
+
+function harLoad(e){
+	if(this.readyState !== 4) return;
+
 	console.log(this.responseURL,e,this);
+	document.querySelector('.harsloaded').value = Mock.report();
+	var har = Mock.generateHar();
+	document.querySelector('.harjson').value = JSON.stringify(har, false, '\t');
 };
 a.send();
 </script>

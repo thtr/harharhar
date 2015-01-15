@@ -3,6 +3,7 @@
 	// Mock('http://.../some.har')
 		Mock.load(harfile, Mock.setup).send();
 	};
+	Mock.version = '0';
 	Mock._pending = 0;
 	Mock._queue = [];
 	Mock._XHR = window.XMLHttpRequest;
@@ -26,16 +27,96 @@
 	Mock.setup = function(e){
 		Mock.list[ this.responseURL ] = JSON.parse( this.responseText );
 	};
+	Mock.Har = function(){
+		this.log = {
+			version: '1.2'
+			,creator: {name:'harharhar', version:Mock.version}
+			,pages: [new Mock.Page()]
+			,entries: []
+		};
+		this.log.entries.push(new Mock.Entry(this.log.pages[0].title));
+	};
+	Mock.Page = function(){
+		this.id = 'page_generated';
+		this.pageTimings = {onContentLoad: 100, onLoad: 111};
+		this.startedDateTime = (new Date).toISOString();
+		this.title = location.href;
+	};
+	Mock.Header = function(name, value){
+		this.name = name;
+		this.value = value;
+	};
+	Mock.Entry = function(pageTitle){
+		this.cache = {};
+		this.connection = "123"
+		this.pageRef = pageTitle;
+		this.request = {
+			bodySize: 0
+			// TODO
+			,cookies: []
+			// TODO
+			,headers: []
+			// TODO
+			,headersSize: 0
+			,httpVersion: 'HTTP/1.1'
+			,method: 'GET'
+			// TODO
+			,queryString: []
+			,url: location.href
+		};
+		this.response = {
+			bodySize: 0
+			// TODO
+			,content: {
+				compression: 0
+				,mimeType: 'text/html'
+				// TODO
+				,size: 0
+				,text: '1234'
+			}
+			// TODO
+			,cookies: []
+			// TODO
+			,headers: []
+			// TODO
+			,headersSize: 0
+			,httpVersion: 'HTTP/1.1'
+			,redirectURL: ''
+			,status: 200
+			,statusText: 'OK'
+		};
+		this.startedDateTime = (new Date).toISOString();
+		this.time = 3.123;
+		this.timings = {
+			blocked: 0.5
+			,connect: 0.2
+			,dns: 0.02
+			,receive: 2.4
+			,send: 0.05
+			,ssl: -1
+			,wait: 0.4
+		};
+		// TODO separate out dynamic stuff like this into isolated functionality
+		this.response.content.size = this.response.content.text.length;
+	};
+	Mock.generateHar = function(){
+		var har = new Mock.Har();
+
+		return har;
+	};
 	Mock.report = function(){
+		var txt = ['--> see console output for more detail','har files loaded with entries:'];
 		// print out all available the mock info
 		for(var har in Mock.list){
 			console.log(har, Mock.list[har]);
+			txt.push(har);
 			har = Mock.list[har];
 			har.log.entries.forEach(function(d, i, entries){
+				txt.push(['\t'+i, d.request.method, d.request.url].join(' '));
 				console.log(i, d.request.method, d.request.url, d);
 			});
 		};
-		return Mock.list;
+		return txt.join('\n');
 	};
 	Mock.response = function(xhr){
 		// is there a har-file response that looks like a match?
