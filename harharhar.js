@@ -65,7 +65,7 @@
 		loc.pathname = url[2].replace(/^\.\//,'');
 		loc.params = url[3];
 		if(!/^\//.test(loc.pathname)){
-			loc.pathname = location.pathname + loc.pathname;
+			loc.pathname = location.pathname.replace(/^(.*)\/[^\/]+$/,'$1/') + loc.pathname;
 		};
 		if(loc.params){
 			loc.params.split('&').forEach(function(pair){
