@@ -1,5 +1,7 @@
 # harharhar
-load har files then intercept XMLHttpRequests to use the pre-recorded traffic
+A drop-in data-mocking utility for single-page web apps.
+
+Currently limited to XMLHttpRequests loading har files (load the file then intercept XMLHttpRequests to use the pre-recorded traffic). Planning websocket support, etc as time permits.
 
 basic use
 * open the chrome dev tools
