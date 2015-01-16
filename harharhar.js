@@ -212,7 +212,22 @@
 			};
 		}
 	};
-
+	var prop, value;
+	for(prop in XMLHttpRequest.prototype){
+		value = XMLHttpRequest.prototype[prop];
+		if(Mock.XMLHttpRequest.prototype[prop]) continue;
+		switch(typeof(value)){
+		case 'function':
+			Mock.XMLHttpRequest.prototype[prop] = (function(prop){
+			return function(){
+				return this._xhr[prop].apply(this._xhr, arguments);
+			};
+			})(prop);
+		break;
+		default:
+			Mock.XMLHttpRequest.prototype[prop] = value;
+		};
+	};
 	window.Mock = Mock;
 	window.XMLHttpRequest = Mock.XMLHttpRequest;
 })(window);
