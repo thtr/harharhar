@@ -4,6 +4,7 @@
 		Mock.load(harfile, Mock.setup).send();
 	};
 	Mock.version = '0';
+	Mock.bypass = false;
 	Mock._pending = 0;
 	Mock._queue = [];
 	Mock._XHR = window.XMLHttpRequest;
@@ -105,6 +106,9 @@
 		return har;
 	};
 	Mock.report = function(){
+	/**
+	 * output info about mocked content to the console and as a string for a DOM UI
+	 */
 		var txt = ['--> see console output for more detail','har files loaded with entries:'];
 		// print out all available the mock info
 		for(var har in Mock.list){
@@ -119,6 +123,9 @@
 		return txt.join('\n');
 	};
 	Mock.response = function(xhr){
+	/**
+	 * find a response in the har mocks that matches the xhr
+	 */
 		// is there a har-file response that looks like a match?
 		var har, i, entries, item, _loc;
 		harsLoop: for(har in Mock.list){
@@ -137,7 +144,9 @@
 		return xhr;
 	};
 	Mock.location = function(url, method){
-	// make a url like 'http://domain/path/to/item?with=args look like a window.location object
+	/**
+	 * make a url (like 'http://domain/path/to/item?with=args) look like a window.location object
+	 */
 		var params = {}, loc = {_: url, origin: '', params: '', search: '', method: (method||'').toUpperCase()};
 		// eg '/path/to/thing?and=stuff&this=things'
 		// try '/path/to/thing?and=stuff&this=things'.match(/^[^?]+\??(.*)?/)
@@ -166,6 +175,11 @@
 	};
 
 	Mock.XMLHttpRequest = function FakeXMLHttpRequest(){
+	/**
+	 * fake XMLHttpRequest that masks a real one
+	 * @constructor
+	 * @this {FakeXMLHttpRequest}
+	 */
 		this._xhr = new Mock._XHR();
 	};
 	Mock.XMLHttpRequest.prototype = {
@@ -181,12 +195,12 @@
 			return this._xhr.open.apply(this._xhr, arguments);
 		}
 		,send: function(data){
-			if(Mock._pending){
+			if( !Mock.bypass && Mock._pending){
 				this._data = data;
 				Mock._queue.push(this);
 				return;
 			};
-			if( Mock.response(this).mock ){
+			if( !Mock.bypass && Mock.response(this).mock ){
 				this.readyState = 4;
 				this.status = this.mock.response.status;
 				this.statusText = this.mock.response.statusText;
@@ -214,11 +228,15 @@
 	};
 	var prop, value;
 	for(prop in XMLHttpRequest.prototype){
+	/**
+	 * map missing methods that exist on real XMLHttpRequests onto the fake ones
+	 */
 		value = XMLHttpRequest.prototype[prop];
 		if(Mock.XMLHttpRequest.prototype[prop]) continue;
 		switch(typeof(value)){
 		case 'function':
 			Mock.XMLHttpRequest.prototype[prop] = (function(prop){
+			// capture the property name
 			return function(){
 				return this._xhr[prop].apply(this._xhr, arguments);
 			};

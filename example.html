@@ -6,6 +6,20 @@ textarea{min-width:40rem;height:10rem;overflow:auto;border:1px solid #aaa;paddin
 </style>
 </head><body>
 <h3>har file mocking example and file generator</h3>
+<pre>&lt;script src="harharhar.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+	// load the mocked data
+	Mock('mock.har');
+
+	// call something that's mocked
+	var req = new XMLHttpRequest();
+	req.open('get','/mocked.js',true);
+	req.onreadystatechange = function harLoad(e){
+		if(this.readyState !== 4) return;
+		debugger;
+	};
+	req.send();
+&lt;/script&gt;</pre>
 <form>
 <input value="simple.har">
 <input type=submit value=load> TODO make this work
@@ -18,21 +32,86 @@ generated har, customize for desired mock:
 </form>
 <script src="./harharhar.js"></script>
 <script>
-// load the mocked data
-Mock('simple.har');
-// then load something that's mocked in the har file
-var a = new XMLHttpRequest();
-a.open('get','/dev.js',true);
-a.onreadystatechange = harLoad;
+Mock.tests = function(){
+	console.log('-- tests running');
+	console.assert(window.XMLHttpRequest === Mock.XMLHttpRequest, 'Mock.XMLHttpRequest setup');
 
-function harLoad(e){
-	if(this.readyState !== 4) return;
+	var count = 0;
+	console.assert(Mock._queue.length === 0, '_queue array length 0');
+	count++;
+	var xhr = Mock.load(location.href, function(){
+		// expecting this to load before any other stuff, might not always but likely to
+		count--;
+		console.assert(Mock._pending === count, 'Mock.send decrements _pending and calls handler');
+	});
 
-	console.log(this.responseURL,e,this);
-	document.querySelector('.harsloaded').value = Mock.report();
-	var har = Mock.generateHar();
-	document.querySelector('.harjson').value = JSON.stringify(har, false, '\t');
+	console.assert(xhr.constructor === Mock._XHR, 'Mock.load creates real XMLHttpRequest');
+	console.assert(Mock._pending === 1, 'Mock.load increments _pending');
+	xhr.send();
+	count++;
+	// load the mocked data
+	Mock('simple.har');
+
+	Mock._queue.push({send: function(){
+		for(var url in Mock.list);
+		console.assert(/simple.har/.test(url), 'sets up url in Mock.list');
+	}});
+
+	// then load something that's mocked in the har file
+	var a = new XMLHttpRequest();
+	console.assert(a.readyState === 0, 'xhr.readyState is 0');
+	a.open('get','/dev.js',true);
+	a.onreadystatechange = harLoad;
+	console.assert(a.readyState === 3, 'open() set xhr.readyState to 3');
+	console.assert('object' === typeof(a.loc), 'location setup on xhr');
+	console.assert(a._xhr.readyState > 0, 'xhr._xhr (real xhr) open called');
+
+	for(var p in a){
+	console.assert(
+		typeof(a._xhr[p]) === typeof(a[p])
+		|| typeof(a._xhr[p]) === ({'onreadystatechange': 'object', '_xhr':'undefined', 'loc':'undefined' })[p]
+	, 'fake XMLHttpRequest has the same type of methods and properties of a real one');
+	};
+
+
+	function harLoad(e){
+		if(this.readyState !== 4) return;
+
+		console.log(this.responseURL,e,this);
+
+		console.assert(typeof this.mock === 'object', 'xhr.mock found via Mock.response(xhr)');
+		console.assert(/simple.har/.test(this.mock._har), 'xhr.mock._har matches what was loaded');
+		console.assert(typeof(this.mock._index) === 'number', 'xhr.mock._index');
+
+		console.assert(typeof(this.loc) === 'object', 'xhr.loc exists');
+		console.assert(/\/dev.js/.test(this.loc.href), 'loc has expected href property');
+		console.assert(this.loc.method === 'GET', 'loc has expected method');
+		console.assert(typeof(this.loc.params) === 'object', 'xhr.loc.params object exists');
+
+		console.log('-- tests finished');
+
+		document.querySelector('.harsloaded').value = Mock.report();
+		var har = Mock.generateHar();
+		document.querySelector('.harjson').value = JSON.stringify(har, false, '\t');
+	};
+	a.send();
+
+	var loc = Mock.location('testit?stuff=things&some=more&ok','recycle');
+	console.assert(loc._ === 'testit?stuff=things&some=more&ok', 'loc has original input');
+	console.assert(loc.method === 'RECYCLE', 'loc.method is uppercase');
+	console.assert(loc.pathname === (location.pathname.replace(/[^\/]+$/,'') + 'testit'), 'loc.pathname');
+	console.assert(loc.href === location.pathname.replace(/[^\/]+$/,'') + 'testit?ok=&some=more&stuff=things', 'loc.href');
+	console.assert(loc.search === 'ok=&some=more&stuff=things', 'loc.search');
+	console.assert(
+		loc.params.ok === ''
+		&& loc.params.some === 'more'
+		&& loc.params.stuff === 'things'
+	,'loc.params object ok');
+	console.assert(loc.origin === (location.protocol + '//' + document.domain), 'loc.origin');
+
 };
-a.send();
+window.onload = function(){
+	Mock.tests();
+};
 </script>
 </body></html>
