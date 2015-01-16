@@ -5,7 +5,7 @@ html, body{background:white;color:black;font:1rem/1.5 sans-serif;}
 textarea{min-width:40rem;height:10rem;overflow:auto;border:1px solid #aaa;padding:0.3rem;display:block;}
 </style>
 </head><body>
-<h3>har file mocking example and file generator</h3>
+<h3>basic implementation</h3>
 <pre>&lt;script src="harharhar.js"&gt;&lt;/script&gt;
 &lt;script&gt;
 	// load the mocked data
@@ -20,12 +20,14 @@ textarea{min-width:40rem;height:10rem;overflow:auto;border:1px solid #aaa;paddin
 	};
 	req.send();
 &lt;/script&gt;</pre>
+<h3>load a har file</h3>
 <form>
 <input value="simple.har">
 <input type=submit value=load> TODO make this work
 <textarea class=harsloaded></textarea>
 </form>
 <form>
+<h3>create a har file</h3>
 generated har, customize for desired mock:
 <br>TODO create a more elaborate form for easy mocking.
 <textarea class=harjson></textarea>
