@@ -200,13 +200,14 @@
 				Mock._queue.push(this);
 				return;
 			};
+			var evt, list;
 			if( !Mock.bypass && Mock.response(this).mock ){
 				this.readyState = 4;
 				this.status = this.mock.response.status;
 				this.statusText = this.mock.response.statusText;
 				this.responseURL = this.loc.href;
 				this.response = this.responseText = this.mock.response.content.text;
-				this.onreadystatechange.call(this, {
+				evt = {
 					bubbles: false
 					,cancelBubble: false
 					,cancelable: false
@@ -219,8 +220,19 @@
 					,target: this
 					,timeStamp: Date.now()
 					,type: 'readystatechange'
-				});
+				};
+				this.onreadystatechange.call(this, evt);
+				if(this.status < 400){
+					if(this.onload) this.onload();
+				}else{
+					if(this.onerror) this.onerror();
+				};
 			}else{
+				// TODO
+				list = 'onabort, onerror, onload, ontimeout, onloadend'.split(/,\s*/);
+				while(evt in list.shift()){
+					this._xhr[evt] = this[evt] || function(){};
+				};
 				this._xhr.onreadystatechange = this.onreadystatechange;
 				this._xhr.send.apply(this._xhr, arguments);
 			};
