@@ -230,7 +230,7 @@
 			}else{
 				// TODO
 				list = 'onabort, onerror, onload, ontimeout, onloadend'.split(/,\s*/);
-				while(evt in list.shift()){
+				while(evt = list.shift()){
 					this._xhr[evt] = this[evt] || function(){};
 				};
 				this._xhr.onreadystatechange = this.onreadystatechange;
