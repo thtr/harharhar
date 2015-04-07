@@ -243,7 +243,11 @@
 	/**
 	 * map missing methods that exist on real XMLHttpRequests onto the fake ones
 	 */
-		value = XMLHttpRequest.prototype[prop];
+	 	try{ // IE doesn't like this 'Invalid calling object'
+			value = XMLHttpRequest.prototype[prop];
+		}catch(err){
+			continue;
+		};
 		if(Mock.XMLHttpRequest.prototype[prop]) continue;
 		switch(typeof(value)){
 		case 'function':
